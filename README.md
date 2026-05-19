@@ -1,9 +1,9 @@
-# Flask Grid Map with RL Policy Evaluation
+# Streamlit Grid Map with RL Policy Evaluation
 
 ## 🚀DEMO: https://drlhw1-8n25ygm6jljmmcugkpunwk.streamlit.app/
 
 ## Overview
-This project is a modern web application built with Flask and Python. It allows users to generate an interactive `n x n` grid map (where `n` is between 5 and 9). Users can set up a Start cell, an End cell, and customize the grid with obstacles. 
+This project is a modern web application built with Streamlit and Python. It allows users to generate an interactive `n x n` grid map (where `n` is between 5 and 9). Users can set up a Start cell, an End cell, and customize the grid with obstacles. 
 
 Furthermore, the application integrates a Reinforcement Learning (RL) aspect using Iterative Policy Evaluation. Once the grid is configured, it sends the state to a Python backend solving module which evaluates random policies, finding the Value function $V(s)$ and Policy choices (arrows), to render on the frontend interface alongside the interactive grid.
 
@@ -16,11 +16,8 @@ Furthermore, the application integrates a Reinforcement Learning (RL) aspect usi
   - Dynamically renders policy matrices mapped onto grid cells as direction arrows.
 
 ## Project Structure
-- `app.py`: The main Flask server application handling routes and API requests.
+- `streamlit_app.py`: The main Streamlit application providing the interactive UI and flow.
 - `rl_solver.py`: Reinforcement Learning module parsing states and calculating $V(s)$ and policies.
-- `templates/index.html`: The HTML template containing the user interface.
-- `static/style.css`: The stylesheet driving the application's premium look.
-- `static/script.js`: The frontend script managing interactive grid click states and API integration for the RL matrices.
 - `Task.md`: Development task checklist and breakdown.
 - `Implementation_Plan.md`: The architectural plan mapping out the logic applied.
 - `Walkthrough.md`: A visual walkthrough validating the requirements mapped against subagent testing.
@@ -29,10 +26,11 @@ Furthermore, the application integrates a Reinforcement Learning (RL) aspect usi
 
 ### Prerequisites
 - Python 3.7+
-- Flask
+- Streamlit
+- Pandas
 
 ```bash
-pip install flask
+pip install streamlit pandas
 ```
 
 ### Running the Application
@@ -40,11 +38,11 @@ pip install flask
 1. Open your terminal in the root directory.
 2. Start the server:
 ```bash
-python app.py
+streamlit run streamlit_app.py
 ```
-*(Optionally use `py app.py` on Windows if `python` is not mapped).*
+*(Optionally use `python -m streamlit run streamlit_app.py` if Streamlit is not in your PATH).*
 
-3. Navigate your browser to `http://localhost:5000`.
+3. The application will automatically open in your default browser at `http://localhost:8501`.
 
 ### Using the App
 1. Set an `n x n` size and click **Generate Square**.
