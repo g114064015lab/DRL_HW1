@@ -137,6 +137,14 @@ if 'vi_policy_matrix' not in st.session_state:
 if 'optimal_path' not in st.session_state:
     st.session_state.optimal_path = []
 
+# Random Policy State
+if 'rp_computed' not in st.session_state:
+    st.session_state.rp_computed = False
+if 'rp_value_matrix' not in st.session_state:
+    st.session_state.rp_value_matrix = None
+if 'rp_policy_matrix' not in st.session_state:
+    st.session_state.rp_policy_matrix = None
+
 # Sidebar Controls
 with st.sidebar:
     st.header("Settings")
@@ -150,6 +158,7 @@ with st.sidebar:
         st.session_state.phase = 0
 
         st.session_state.vi_computed = False
+        st.session_state.rp_computed = False
         st.rerun()
 
 n = st.session_state.n
@@ -222,18 +231,60 @@ for row in range(n):
 st.write("---")
 
 if st.session_state.phase >= 2: # Can solve even if max obstacles not reached yet
-    if st.button("👑 Run Value Iteration (Optimal Policy)", type="primary", use_container_width=True):
-        with st.spinner("Running Value Iteration..."):
-            result = value_iteration(
-                n=st.session_state.n,
-                start_id=st.session_state.start_id,
-                end_id=st.session_state.end_id,
-                obstacle_ids=list(st.session_state.obstacles)
-            )
-            st.session_state.vi_value_matrix = result['value_matrix']
-            st.session_state.vi_policy_matrix = result['policy_matrix']
-            st.session_state.optimal_path = result['optimal_path']
-            st.session_state.vi_computed = True
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
+        if st.button("🎲 Evaluate Random Policy (HW1-2)", use_container_width=True):
+            with st.spinner("Evaluating Random Policy..."):
+                from rl_solver import evaluate_policy
+                result = evaluate_policy(
+                    n=st.session_state.n,
+                    start_id=st.session_state.start_id,
+                    end_id=st.session_state.end_id,
+                    obstacle_ids=list(st.session_state.obstacles)
+                )
+                st.session_state.rp_value_matrix = result['value_matrix']
+                st.session_state.rp_policy_matrix = result['policy_matrix']
+                st.session_state.rp_computed = True
+    with col_btn2:
+        if st.button("👑 Run Value Iteration (Optimal Policy)", type="primary", use_container_width=True):
+            with st.spinner("Running Value Iteration..."):
+                from rl_solver import value_iteration
+                result = value_iteration(
+                    n=st.session_state.n,
+                    start_id=st.session_state.start_id,
+                    end_id=st.session_state.end_id,
+                    obstacle_ids=list(st.session_state.obstacles)
+                )
+                st.session_state.vi_value_matrix = result['value_matrix']
+                st.session_state.vi_policy_matrix = result['policy_matrix']
+                st.session_state.optimal_path = result['optimal_path']
+                st.session_state.vi_computed = True
+
+if st.session_state.rp_computed:
+    st.write("---")
+    st.header("HW1-2 Random Policy Evaluation")
+    col_v1, col_p1 = st.columns(2)
+    with col_v1:
+        st.subheader("Value Matrix $V^\pi(s)$")
+        df_v1 = pd.DataFrame(st.session_state.rp_value_matrix)
+        def _style_values1(df):
+            styles = pd.DataFrame('', index=df.index, columns=df.columns)
+            na_mask = df.isna()
+            styles = styles.mask(na_mask, 'background-color: #64748b; color: white')
+            return styles
+        styled_v1 = df_v1.style.apply(_style_values1, axis=None).format(na_rep="OBS", precision=2)
+        st.dataframe(styled_v1, use_container_width=True)
+        
+    with col_p1:
+        st.subheader("Policy Matrix $\pi(s)$")
+        df_p1 = pd.DataFrame(st.session_state.rp_policy_matrix)
+        def _style_policy1(df):
+            styles = pd.DataFrame('', index=df.index, columns=df.columns)
+            styles = styles.mask(df == 'OBS', 'background-color: #64748b; color: white')
+            styles = styles.mask(df == 'END', 'background-color: #ef4444; color: white')
+            return styles
+        styled_p1 = df_p1.style.apply(_style_policy1, axis=None)
+        st.dataframe(styled_p1, use_container_width=True)
 
 if st.session_state.vi_computed:
     st.write("---")
