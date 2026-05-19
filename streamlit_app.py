@@ -172,9 +172,9 @@ if st.session_state.rl_computed:
         st.subheader("Value Matrix $V(s)$")
         # Format the dataframe cleanly
         df_v = pd.DataFrame(st.session_state.value_matrix)
-        # Apply styling to hide indices and highlight obstacles
-        styled_v = df_v.style.format(na_rep="OBS", precision=2) \
-            .applymap(lambda v: 'background-color: #64748b; color: white' if pd.isna(v) else '')
+        # Apply styling to highlight obstacles; format afterwards to avoid attribute errors
+        styled_v = df_v.style.applymap(lambda v: 'background-color: #64748b; color: white' if pd.isna(v) else '') \
+            .format(na_rep="OBS", precision=2)
         st.dataframe(styled_v, use_container_width=True)
         
     with col_p:
