@@ -172,14 +172,24 @@ if st.session_state.rl_computed:
         st.subheader("Value Matrix $V(s)$")
         # Format the dataframe cleanly
         df_v = pd.DataFrame(st.session_state.value_matrix)
-        # Apply styling to highlight obstacles; format afterwards to avoid attribute errors
-        styled_v = df_v.style.applymap(lambda v: 'background-color: #64748b; color: white' if pd.isna(v) else '') \
-            .format(na_rep="OBS", precision=2)
+        # Use a robust style function (returns a DataFrame of CSS) instead of applymap
+        def _style_values(df):
+            styles = pd.DataFrame('', index=df.index, columns=df.columns)
+            na_mask = df.isna()
+            styles = styles.mask(na_mask, 'background-color: #64748b; color: white')
+            return styles
+
+        styled_v = df_v.style.apply(_style_values, axis=None).format(na_rep="OBS", precision=2)
         st.dataframe(styled_v, use_container_width=True)
         
     with col_p:
         st.subheader("Policy Matrix $\pi(s)$")
         df_p = pd.DataFrame(st.session_state.policy_matrix)
-        styled_p = df_p.style.applymap(lambda v: 'background-color: #64748b; color: white' if v == 'OBS' else 
-                                               ('background-color: #ef4444; color: white' if v == 'END' else ''))
+        def _style_policy(df):
+            styles = pd.DataFrame('', index=df.index, columns=df.columns)
+            styles = styles.mask(df == 'OBS', 'background-color: #64748b; color: white')
+            styles = styles.mask(df == 'END', 'background-color: #ef4444; color: white')
+            return styles
+
+        styled_p = df_p.style.apply(_style_policy, axis=None)
         st.dataframe(styled_p, use_container_width=True)
