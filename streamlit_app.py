@@ -1,5 +1,5 @@
 import streamlit as st
-from rl_solver import evaluate_policy, value_iteration
+from rl_solver import value_iteration
 import pandas as pd
 
 # Basic page setup
@@ -125,12 +125,7 @@ if 'obstacles' not in st.session_state:
     st.session_state.obstacles = set()
 if 'phase' not in st.session_state:
     st.session_state.phase = 0  # 0: start, 1: end, 2: obstacles, 3: done
-if 'rl_computed' not in st.session_state:
-    st.session_state.rl_computed = False
-if 'value_matrix' not in st.session_state:
-    st.session_state.value_matrix = None
-if 'policy_matrix' not in st.session_state:
-    st.session_state.policy_matrix = None
+
 
 # Value Iteration State
 if 'vi_computed' not in st.session_state:
@@ -153,7 +148,7 @@ with st.sidebar:
         st.session_state.end_id = None
         st.session_state.obstacles = set()
         st.session_state.phase = 0
-        st.session_state.rl_computed = False
+
         st.session_state.vi_computed = False
         st.rerun()
 
@@ -171,7 +166,7 @@ elif st.session_state.phase == 2:
     obs_count = len(st.session_state.obstacles)
     st.info(f"3. Click up to **{max_obs} cells** to set Obstacles (⬛). Selected: {obs_count} / {max_obs}")
 else:
-    st.success("Grid setup complete! Ready to evaluate RL Policy or Run Value Iteration.")
+    st.success("Grid setup complete! Ready to Run Value Iteration.")
 
 # Status Bar
 col_s, col_e, col_o = st.columns(3)
@@ -227,58 +222,18 @@ for row in range(n):
 st.write("---")
 
 if st.session_state.phase >= 2: # Can solve even if max obstacles not reached yet
-    col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
-        if st.button("🚀 Evaluate Random Policy", use_container_width=True):
-            with st.spinner("Running Iterative Policy Evaluation..."):
-                result = evaluate_policy(
-                    n=st.session_state.n,
-                    start_id=st.session_state.start_id,
-                    end_id=st.session_state.end_id,
-                    obstacle_ids=list(st.session_state.obstacles)
-                )
-                st.session_state.value_matrix = result['value_matrix']
-                st.session_state.policy_matrix = result['policy_matrix']
-                st.session_state.rl_computed = True
-    
-    with col_btn2:
-        if st.button("👑 Run Value Iteration (Optimal Policy)", type="primary", use_container_width=True):
-            with st.spinner("Running Value Iteration..."):
-                result = value_iteration(
-                    n=st.session_state.n,
-                    start_id=st.session_state.start_id,
-                    end_id=st.session_state.end_id,
-                    obstacle_ids=list(st.session_state.obstacles)
-                )
-                st.session_state.vi_value_matrix = result['value_matrix']
-                st.session_state.vi_policy_matrix = result['policy_matrix']
-                st.session_state.optimal_path = result['optimal_path']
-                st.session_state.vi_computed = True
-
-if st.session_state.rl_computed:
-    st.header("Random Policy Evaluation Results")
-    col_v, col_p = st.columns(2)
-    with col_v:
-        st.subheader("Value Matrix $V(s)$")
-        df_v = pd.DataFrame(st.session_state.value_matrix)
-        def _style_values(df):
-            styles = pd.DataFrame('', index=df.index, columns=df.columns)
-            na_mask = df.isna()
-            styles = styles.mask(na_mask, 'background-color: #64748b; color: white')
-            return styles
-        styled_v = df_v.style.apply(_style_values, axis=None).format(na_rep="OBS", precision=2)
-        st.dataframe(styled_v, use_container_width=True)
-        
-    with col_p:
-        st.subheader("Policy Matrix $\pi(s)$")
-        df_p = pd.DataFrame(st.session_state.policy_matrix)
-        def _style_policy(df):
-            styles = pd.DataFrame('', index=df.index, columns=df.columns)
-            styles = styles.mask(df == 'OBS', 'background-color: #64748b; color: white')
-            styles = styles.mask(df == 'END', 'background-color: #ef4444; color: white')
-            return styles
-        styled_p = df_p.style.apply(_style_policy, axis=None)
-        st.dataframe(styled_p, use_container_width=True)
+    if st.button("👑 Run Value Iteration (Optimal Policy)", type="primary", use_container_width=True):
+        with st.spinner("Running Value Iteration..."):
+            result = value_iteration(
+                n=st.session_state.n,
+                start_id=st.session_state.start_id,
+                end_id=st.session_state.end_id,
+                obstacle_ids=list(st.session_state.obstacles)
+            )
+            st.session_state.vi_value_matrix = result['value_matrix']
+            st.session_state.vi_policy_matrix = result['policy_matrix']
+            st.session_state.optimal_path = result['optimal_path']
+            st.session_state.vi_computed = True
 
 if st.session_state.vi_computed:
     st.write("---")
